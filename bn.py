@@ -15,6 +15,10 @@ class Node:
     # isQueryVariable = None
     # isEvidenceVariable = None
   
+  # when we print this node, print the node name
+  def __repr__(self):
+    return self.nodeName
+  
 #%% 
 # get a list of the nodes from the file name
 def getNodes(fileName):
@@ -46,9 +50,21 @@ def getNodes(fileName):
     # now we can create our node
     cpt = pd.DataFrame(data=data)
     nodes.append(Node(nodeName, parents, cpt))
+  
+  # now we need to convert the strings of parents to their actual node objects
+  parentsToNodes(nodes)
   return nodes
 
-#%%
+# given our nodes with parents encoded as strings, convert each parent to a Node object
+def parentsToNodes(nodes):
+  for node in nodes:
+    actualParents = []
+    for parent in node.parents:
+      for n in nodes:
+        if(parent == n.nodeName):
+            actualParents.append(n)
+    node.parents = actualParents
+
 # helper function to seperate the data into two columns, true and false
 def seperateData(probabilities):
     fData = []
@@ -67,13 +83,13 @@ def seperateData(probabilities):
 def generateNetwork(fileName):
   network = nx.nx.DiGraph(directed=True)
   nodes = getNodes(fileName)
-
+  
   for node in nodes:
     for parent in node.parents:
-      network.add_edge(parent, node.nodeName)
+      network.add_edge(parent, node)
 
   return network
 #%%
-# gnerate our network and draw it
+# generate our network and draw it
 network = generateNetwork('inputs/network_option_a.txt')
 nx.draw(network, arrows=True, with_labels=True)
