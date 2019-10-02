@@ -32,6 +32,7 @@ def getNodes(networkFileName, queryFileName):
   inputFile = open(networkFileName)
   nodes = []
 
+  # create a list of nodes
   for line in inputFile:
     parsed = re.findall(r'\[([^]]*)\]', line) # split by []
     nodeName = line[0 : line.find(':')]
@@ -39,7 +40,19 @@ def getNodes(networkFileName, queryFileName):
     if(parsed[0] != ''): # skip nodes with no parents
       parents = parsed[0].split(' ') # this needs to be empty array
     probabilities = parsed[1].split(' ') # get our probabilities
+    cpt = createCPT(probabilities, parents, nodeName) # create our cpt
     
+    nodes.append(Node(nodeName, parents, cpt)) # create a node and append it to the list
+  
+  # set the status of our nodes
+  setStatus(queryFileName, nodes)
+
+  # now we need to convert the strings of parents to their actual node objects
+  parentsToNodes(nodes)
+
+  return nodes
+
+def createCPT(probabilities, parents, nodeName):
     data = {}
 
     # split our probability data into two columns
@@ -56,13 +69,7 @@ def getNodes(networkFileName, queryFileName):
 
     # now we can create our node
     cpt = pd.DataFrame(data=data)
-    nodes.append(Node(nodeName, parents, cpt))
-  
-  setStatus(queryFileName, nodes)
-
-  # now we need to convert the strings of parents to their actual node objects
-  parentsToNodes(nodes)
-  return nodes
+    return cpt
 
 # given our nodes with parents encoded as strings, convert each parent to a Node object
 def parentsToNodes(nodes):
