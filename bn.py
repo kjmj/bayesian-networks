@@ -6,23 +6,30 @@ import re
 #%%
 # class representing a node
 class Node:
+  status = None
   def __init__(self, nodeName, parents, cpt):
     self.nodeName = nodeName
     self.parents = parents
     self.cpt = cpt # conditional probability table
-    
-    # todo deal with these variables when we need to
-    # isQueryVariable = None
-    # isEvidenceVariable = None
   
   # when we print this node, print the node name
   def __repr__(self):
     return self.nodeName
+
+#%%
+# sets the status of each node
+def setStatus(fileName, nodes):
+  inputFile = open(fileName)
+  line = inputFile.readline().rstrip() # read line and strip \n
+  parsed = line.split(',') # split by commas
+  for i,char in enumerate(parsed): # go through nodes and assign them their status character
+    nodes[i].status = char
+    
   
 #%% 
 # get a list of the nodes from the file name
-def getNodes(fileName):
-  inputFile = open(fileName)
+def getNodes(networkFileName, queryFileName):
+  inputFile = open(networkFileName)
   nodes = []
 
   for line in inputFile:
@@ -51,6 +58,8 @@ def getNodes(fileName):
     cpt = pd.DataFrame(data=data)
     nodes.append(Node(nodeName, parents, cpt))
   
+  setStatus(queryFileName, nodes)
+
   # now we need to convert the strings of parents to their actual node objects
   parentsToNodes(nodes)
   return nodes
@@ -80,9 +89,9 @@ def seperateData(probabilities):
 
 #%%
 # generate a bayseian network from the given file name
-def generateNetwork(fileName):
+def generateNetwork(networkFileName, queryFileName):
   network = nx.nx.DiGraph(directed=True)
-  nodes = getNodes(fileName)
+  nodes = getNodes(networkFileName, queryFileName)
   
   for node in nodes:
     for parent in node.parents:
@@ -91,5 +100,5 @@ def generateNetwork(fileName):
   return network
 #%%
 # generate our network and draw it
-network = generateNetwork('inputs/network_option_a.txt')
-nx.draw(network, arrows=True, with_labels=True)
+network = generateNetwork('inputs/network_option_a.txt', 'inputs/query1.txt')
+#nx.draw(network, arrows=True, with_labels=True)
