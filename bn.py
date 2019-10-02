@@ -102,5 +102,3 @@ def generateNetwork(networkFileName, queryFileName):
 # generate our network and draw it
 network = generateNetwork('inputs/network_option_a.txt', 'inputs/query1.txt')
 #nx.draw(network, arrows=True, with_labels=True)
-for node in network:
-  print(node.nodeName, node.status)
