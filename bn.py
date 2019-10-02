@@ -4,48 +4,92 @@ import pandas as pd
 import re
 
 #%%
-G = nx.Graph()
-G.add_edge('A', 'B', weight=4)
-G.add_edge('B', 'D', weight=2)
-G.add_edge('A', 'C', weight=3)
-G.add_edge('C', 'D', weight=4)
-nx.shortest_path(G, 'A', 'D', weight='weight')
-
-#%%
-
+# class representing a node
 class Node:
-  isQueryVariable = None
-  isEvidenceVariable = None
+  def __init__(self, nodeName, parents, cpt):
+    self.nodeName = nodeName
+    self.parents = parents
+    self.cpt = cpt # conditional probability table
+    
+    # todo deal with these variables when we need to
+    # isQueryVariable = None
+    # isEvidenceVariable = None
+  
+  # when we print this node, print the node name
+  def __repr__(self):
+    return self.nodeName
+  
+#%% 
+# get a list of the nodes from the file name
+def getNodes(fileName):
+  inputFile = open(fileName)
+  nodes = []
 
+  for line in inputFile:
+    parsed = re.findall(r'\[([^]]*)\]', line) # split by []
+    nodeName = line[0 : line.find(':')]
+    parents = [] # parents of this node
+    if(parsed[0] != ''): # skip nodes with no parents
+      parents = parsed[0].split(' ') # this needs to be empty array
+    probabilities = parsed[1].split(' ') # get our probabilities
+    
+    data = {}
 
-#%% data frame stuff
-inputFile = open('inputs/network_option_a.txt')
-data = {'parent1': [], 'parent2': []}
+    # split our probability data into two columns
+    fData, tData = seperateData(probabilities)
+    data['p(' + nodeName + '=F)'] = fData
+    data['p(' + nodeName + '=T)'] = tData
 
-for line in inputFile:
-  nodeName = line[0 : line.find(':')]
+    # process parents
+    if(len(parents) == 1 and parents[0] != ''):
+      data['parent1'] = ['parent=F', 'parent=T']
+    elif(len(parents) == 2):
+      data['parent1'] = ['parent1=F', 'parent1=F', 'parent1=T', 'parent1=T']
+      data['parent2'] = ['parent2=F', 'parent2=T', 'parent2=F', 'parent2=T']
 
-  parsed = re.findall(r'\[([^]]*)\]', line)
-  parents = parsed[0]
-  table = parsed[1]
+    # now we can create our node
+    cpt = pd.DataFrame(data=data)
+    nodes.append(Node(nodeName, parents, cpt))
+  
+  # now we need to convert the strings of parents to their actual node objects
+  parentsToNodes(nodes)
+  return nodes
 
-  split = parents.split(' ')
-  if(len(split) == 1):
-    parent1 = split[0]
-    # 1 parent
-    data['parent1'].append([parent1 + ' F', parent1 + ' T'])
-    data['parent2'].append([None, None])
-  elif(len(split) == 2):
-    # 2 parents
-    data['parent1'] = [split[0] + ' F', split[0] + ' F', split[0] + ' T', split[0] + ' T']
-    data['parent2'] = [split[1] + ' F', split[1] + ' T', split[1] + ' F', split[1] + ' T']
+# given our nodes with parents encoded as strings, convert each parent to a Node object
+def parentsToNodes(nodes):
+  for node in nodes:
+    actualParents = []
+    for parent in node.parents:
+      for n in nodes:
+        if(parent == n.nodeName):
+            actualParents.append(n)
+    node.parents = actualParents
 
-# print(data)
-
-
-
-  #, 'node1 F': [.35, .23], 'node1 T': [.65, .77]
-df = pd.DataFrame(data=data)
-print(df)
+# helper function to seperate the data into two columns, true and false
+def seperateData(probabilities):
+    fData = []
+    tData = []
+    for i, probability in enumerate(probabilities):
+      # even
+      if(i % 2 == 0):
+        fData.append(float(probability))
+      # odd
+      if(i % 2 == 1):
+        tData.append(float(probability))
+    return fData, tData
 
 #%%
+# generate a bayseian network from the given file name
+def generateNetwork(fileName):
+  network = nx.nx.DiGraph(directed=True)
+  nodes = getNodes(fileName)
+  
+  for node in nodes:
+    for parent in node.parents:
+      network.add_edge(parent, node)
+
+  return network
+#%%
+# generate our network and draw it
+network = generateNetwork('inputs/network_option_a.txt')
+nx.draw(network, arrows=True, with_labels=True)
