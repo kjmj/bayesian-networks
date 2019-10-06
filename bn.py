@@ -2,6 +2,7 @@
 import networkx as nx
 import pandas as pd
 import re
+import random
 
 #%%
 # class representing a node
@@ -105,7 +106,35 @@ def generateNetwork(networkFileName, queryFileName):
       network.add_edge(parent, node)
 
   return network
+
+#%%
+def sampleLoop(node, values):
+  if len(node.parents) is 0:
+    randValue = random.uniform(0,1)
+    # cptValue = node.cpt[0]
+    return (randValue < cptValue)
+  for parent in node.parents:
+    values[parent] = samplingLoop(parent, values)
+  
+
+#%%
+# samples a bayesian network
+def sampling(network):
+  #network = nx.topological_sort(network)
+  values = {}
+  for node in network:
+    sampleLoop(node, values)
+        
+
+#%%
+# performs rejection sampling onto the bayesian network
+# def rejectionSampling():
+
+
+
 #%%
 # generate our network and draw it
 network = generateNetwork('inputs/network_option_a.txt', 'inputs/query1.txt')
+for node in network:
+  print(node.cpt)
 #nx.draw(network, arrows=True, with_labels=True)
