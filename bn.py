@@ -124,27 +124,6 @@ def findSampleVal(node, values):
     if 'F' in col:
       cptValue = node.cpt[col][i]
     return cptValue
-  # rand = random.uniform(0, 1)
-
-  # if len(node.parents) is 0:
-  #   for col in node.cpt:
-  #     if 'F' in col:
-  #       cptValue = node.cpt[col][0]
-  #   return (rand < cptValue)
-  # else:
-  #   for col in node.cpt:
-  #     if 'F' in col:
-  #       cptValue = node.cpt[col][1]
-  #   return rand < cptValue
-
-  # for parent in node.parents:
-  #   values[parent] = findSampleVal(parent, values)
-  # for parent in node.parents:
-  #   if(values[parent]):
-  #     for col in node.cpt:
-  #       if 'F' in col:
-  #         cptValue = node.cpt[col][1]
-  #     return (rand < cptValue)
 
 # samples a bayesian network
 def priorSampling(network):
@@ -264,10 +243,10 @@ def main():
 
     # run rejection sampling
     rs = rejectionSampling(evidence['X'], evidence['e'], network, numSamples)
-    print(rs)
+    print('Rejection Sampling', rs)
 
     # run likelihood weighting
     lw = likelihoodWeighting(evidence['X'], evidence['e'], network, numSamples)
-    print(lw)
+    print('Likelihood Weighting', lw)
 
 main()
