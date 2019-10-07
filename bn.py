@@ -109,34 +109,50 @@ def generateNetwork(networkFileName, queryFileName):
 
 # get the sample value from the node
 def findSampleVal(node, values):
-  rand = random.uniform(0, 1)
-
   if len(node.parents) is 0:
     for col in node.cpt:
       if 'F' in col:
         cptValue = node.cpt[col][0]
-    return (rand < cptValue)
-  else:
-    for col in node.cpt:
-      if 'F' in col:
-        cptValue = node.cpt[col][1]
-    return rand < cptValue
-
+    return cptValue
   for parent in node.parents:
-    values[parent] = findSampleVal(parent, values)
+    values[parent] = weightedProbabilities(parent, values)
+  i = 0
   for parent in node.parents:
     if(values[parent]):
-      for col in node.cpt:
-        if 'F' in col:
-          cptValue = node.cpt[col][1]
-      return (rand < cptValue)
+      i += (2 ** node.parents.index(parent))
+  for col in node.cpt:
+    if 'F' in col:
+      cptValue = node.cpt[col][i]
+    return cptValue
+  # rand = random.uniform(0, 1)
+
+  # if len(node.parents) is 0:
+  #   for col in node.cpt:
+  #     if 'F' in col:
+  #       cptValue = node.cpt[col][0]
+  #   return (rand < cptValue)
+  # else:
+  #   for col in node.cpt:
+  #     if 'F' in col:
+  #       cptValue = node.cpt[col][1]
+  #   return rand < cptValue
+
+  # for parent in node.parents:
+  #   values[parent] = findSampleVal(parent, values)
+  # for parent in node.parents:
+  #   if(values[parent]):
+  #     for col in node.cpt:
+  #       if 'F' in col:
+  #         cptValue = node.cpt[col][1]
+  #     return (rand < cptValue)
 
 # samples a bayesian network
 def priorSampling(network):
   values = {}
   for node in network:
+    rand = random.uniform(0,1)
     val = findSampleVal(node, values)
-    values[node.nodeName] = val
+    values[node.nodeName] = True if rand < val else False 
   return values
 
 # query for evidence on the network
